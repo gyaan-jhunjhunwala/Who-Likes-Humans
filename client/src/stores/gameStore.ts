@@ -38,14 +38,35 @@ interface GameStore {
   dismissError: () => void;
 }
 
-const getServerUrl = () => {
-  const envUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!envUrl) return 'http://localhost:4000';
-  if (envUrl.startsWith('http://') || envUrl.startsWith('https://')) return envUrl;
-  return `https://${envUrl}`;
-};
+const getServerUrl = (): string => {
+  let envUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-const SERVER_URL = getServerUrl();
+  // If in browser on Render and envUrl is localhost or missing, auto-detect counterpart server
+  if (typeof window !== 'undefined') {
+    const currentHost = window.location.hostname;
+    if (currentHost.includes('.onrender.com') && (!envUrl || envUrl.includes('localhost'))) {
+      const serverHost = currentHost.replace('client', 'server');
+      return `https://${serverHost}`;
+    }
+  }
+
+  if (!envUrl) return 'http://localhost:4000';
+
+  if (!envUrl.startsWith('http://') && !envUrl.startsWith('https://')) {
+    envUrl = `https://${envUrl}`;
+  }
+
+  try {
+    const parsed = new URL(envUrl);
+    // If Render internal service name (no dot in hostname and not localhost), append .onrender.com
+    if (!parsed.hostname.includes('.') && parsed.hostname !== 'localhost') {
+      return `https://${parsed.hostname}.onrender.com`;
+    }
+    return parsed.origin;
+  } catch (e) {
+    return envUrl;
+  }
+};
 
 export const useGameStore = create<GameStore>((set, get) => ({
   socket: null,
@@ -75,7 +96,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       savedId = localStorage.getItem('cah_player_id') || undefined;
     }
 
-    const socket = io(SERVER_URL, {
+    const serverUrl = getServerUrl();
+    console.log('[Socket] Connecting to server at:', serverUrl);
+
+    const socket = io(serverUrl, {
       query: savedId ? { playerId: savedId } : {},
       transports: ['websocket', 'polling'],
     });
