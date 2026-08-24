@@ -38,7 +38,14 @@ interface GameStore {
   dismissError: () => void;
 }
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000';
+const getServerUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!envUrl) return 'http://localhost:4000';
+  if (envUrl.startsWith('http://') || envUrl.startsWith('https://')) return envUrl;
+  return `https://${envUrl}`;
+};
+
+const SERVER_URL = getServerUrl();
 
 export const useGameStore = create<GameStore>((set, get) => ({
   socket: null,

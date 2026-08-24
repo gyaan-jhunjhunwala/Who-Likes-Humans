@@ -31,7 +31,20 @@ const store = createGameStore();
 const gameEngine = new GameEngine(store);
 const roomManager = new RoomManager(store, gameEngine);
 
-// REST API Endpoints
+// Root & REST API Endpoints
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    name: 'Cards Against Humanity Server',
+    status: 'online',
+    message: '🃏 WebSocket & API Server is running smoothly!',
+    endpoints: {
+      health: '/api/health',
+      rooms: '/api/rooms',
+      decks: '/api/decks'
+    }
+  });
+});
+
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
