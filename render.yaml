@@ -1,0 +1,31 @@
+services:
+  # 1. Real-Time Socket.io & Game Server
+  - type: web
+    name: cards-against-humanity-server
+    runtime: node
+    plan: free
+    buildCommand: npm run install:all && npm run build:server
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: ENABLE_REDIS
+        value: false
+
+  # 2. Next.js Frontend Web App
+  - type: web
+    name: cards-against-humanity-client
+    runtime: node
+    plan: free
+    buildCommand: npm run install:all && npm run build:client
+    startCommand: npm run start:client
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SERVER_URL
+        fromService:
+          type: web
+          name: cards-against-humanity-server
+          property: host
