@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -32,16 +32,16 @@ const gameEngine = new GameEngine(store);
 const roomManager = new RoomManager(store, gameEngine);
 
 // REST API Endpoints
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
-app.get('/api/rooms', async (req, res) => {
+app.get('/api/rooms', async (req: Request, res: Response) => {
   const rooms = await store.getPublicRooms();
   res.json({ rooms });
 });
 
-app.get('/api/decks', (req, res) => {
+app.get('/api/decks', (req: Request, res: Response) => {
   const decks = Object.entries(OFFICIAL_DECKS).map(([id, d]: [string, any]) => ({
     id,
     name: d.name,
@@ -54,7 +54,7 @@ app.get('/api/decks', (req, res) => {
 
 // In-Memory Custom Decks Store (MongoDB-ready)
 const customDecks: any[] = [];
-app.post('/api/decks', (req, res) => {
+app.post('/api/decks', (req: Request, res: Response) => {
   const { title, description, creatorName, blackCards, whiteCards } = req.body;
   if (!title || !blackCards || !whiteCards) {
     return res.status(400).json({ error: 'Missing required deck fields' });
